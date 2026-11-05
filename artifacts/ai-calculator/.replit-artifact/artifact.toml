@@ -1,0 +1,32 @@
+kind = "web"
+previewPath = "/"
+title = "AI Calculator"
+description = "AI Calculator is an intelligent math platform for reliable everyday calculations, guided problem solving, advanced tools, and searchable calculation history."
+version = "1.0.0"
+id = "artifacts/ai-calculator"
+router = "path"
+
+[[services]]
+name = "web"
+paths = ["/"]
+localPort = 23811
+
+[services.development]
+run = "python3.11 app.py"
+
+[services.production.build]
+args = ["python3.11", "-m", "pip", "install", "-r", "artifacts/ai-calculator/requirements.txt"]
+
+[services.production.run]
+args = ["python3.11", "artifacts/ai-calculator/app.py"]
+
+[services.production.run.env]
+PORT = "23811"
+BASE_PATH = "/"
+
+[services.production.health.startup]
+path = "/"
+
+[services.env]
+PORT = "23811"
+BASE_PATH = "/"

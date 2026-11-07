@@ -26,8 +26,6 @@
       intro: 'When the question needs interpretation, not just arithmetic.',
       features: [
         ['prompt', 'Prompt Calculator', 'Ask a plain-language question and keep the answer close.', 'bi-chat-square-text'],
-        ['image', 'Image Math Solver', 'Upload a worksheet or handwritten problem.', 'bi-image'],
-        ['voice', 'Voice Calculator', 'Speak a calculation when your hands are busy.', 'bi-mic'],
         ['solver', 'AI Math Solver', 'Choose answer-only, short, or detailed reasoning.', 'bi-lightbulb'],
         ['mistake', 'Mistake Detector', 'Compare your work with a careful explanation.', 'bi-search'],
         ['explain', 'Explain My Answer', 'Turn a result into a level-appropriate explanation.', 'bi-person-raised-hand']
@@ -66,8 +64,6 @@
     'Unit Converter': 'Unit',
     'Financial Calculator': 'Financial',
     'Prompt Calculator': 'AI',
-    'Image Math Solver': 'AI',
-    'Voice Calculator': 'AI',
     'AI Math Solver': 'AI',
     'Mistake Detector': 'AI',
     'Explain My Answer': 'AI',
@@ -517,7 +513,6 @@
     if (type === 'category') return renderCategory(id);
     if (type === 'feature') {
       if (coreForms[id]) return id === 'normal' ? renderNormalWithKeypad() : renderCoreFeature(id);
-      if (id === 'voice') return renderVoiceFeature();
       if (id === 'graph') return renderGraph();
       if (id === 'whatif') return renderWhatIf();
       if (id === 'quadratic') return renderQuadratic();

@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 
 from models import CalculationHistory, db
-from services.ai_service import ai_available, solve, solve_image
 from services.calculator_service import (
     CalculationError,
     calculate,
@@ -34,7 +33,6 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI=f"sqlite:///{database_path}",
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     SQLALCHEMY_ENGINE_OPTIONS={"connect_args": {"check_same_thread": False}},
-    MAX_CONTENT_LENGTH=8 * 1024 * 1024,
 )
 db.init_app(app)
 
@@ -149,19 +147,6 @@ def ai_solve_route():
         return jsonify({"error": str(error)}), 503
 
 
-@app.post("/calc-api/ai/image")
-def ai_image_route():
-    try:
-        result = solve_image(
-            request.files.get("image"),
-            request.form.get("mode", "detailed"),
-            request.form.get("detail_level", "student"),
-        )
-        return jsonify(result)
-    except ValueError as error:
-        return jsonify({"error": str(error)}), 400
-    except RuntimeError as error:
-        return jsonify({"error": str(error)}), 503
 
 
 @app.get("/calc-api/history")

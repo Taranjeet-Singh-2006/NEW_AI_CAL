@@ -184,10 +184,6 @@ def dashboard_route():
     return jsonify(dashboard_summary())
 
 
-@app.errorhandler(413)
-def upload_too_large(_error):
-    return jsonify({"error": "Choose an image smaller than 8 MB."}), 413
-
 
 @app.errorhandler(404)
 def not_found(_error):

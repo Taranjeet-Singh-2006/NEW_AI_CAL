@@ -2,5 +2,5 @@
 # Nixpacks detects Python from requirements.txt and installs the dependencies.
 # This only tells it how to start the Flask app in production.
 
-[start]
-cmd = "gunicorn app:app --bind 0.0.0.0:${PORT:-5000} --workers 2 --threads 4 --timeout 120"
+   [start]
+   cmd = "gunicorn app:app --bind 0.0.0.0:3000 --workers 2 --threads 4 --timeout 120"

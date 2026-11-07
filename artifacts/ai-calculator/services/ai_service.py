@@ -1,11 +1,8 @@
-import base64
 import json
 import os
 import re
 import urllib.error
 import urllib.request
-
-from PIL import Image, ImageOps
 
 from services.calculator_service import (
     CalculationError,
@@ -14,14 +11,7 @@ from services.calculator_service import (
     solve_equation,
 )
 
-MAX_IMAGE_BYTES = 8 * 1024 * 1024
-ALLOWED_IMAGE_TYPES = {
-    "image/jpeg": "jpeg",
-    "image/png": "png",
-    "image/webp": "webp",
-}
 DEFAULT_MODEL = "gemini-3.8-flash"
-DEFAULT_IMAGE_MODEL = "gemini-3.8-flash"
 
 
 def ai_available():

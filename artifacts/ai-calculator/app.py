@@ -4,7 +4,7 @@ import secrets
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
-
+from services.ai_service import ai_available, solve
 from models import CalculationHistory, db
 from services.calculator_service import (
     CalculationError,

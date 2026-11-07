@@ -395,19 +395,6 @@
       button.disabled = false;
     });
   }
-
-  function renderImageFeature() {
-    renderShell(`${aiNotice()}<div class="workspace"><div class="panel"><h2>Image Math Solver</h2><form id="image-form">${formGroup('Problem image', `<input class="form-control" name="image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>`, 'Upload a JPEG, PNG, or WebP image under 8 MB.') }<div class="row g-3">${formGroup('Answer style', selectInput('mode', [['answer-only', 'Answer only'], ['short', 'Short explanation'], ['detailed', 'Detailed reasoning']], 'detailed'))}${formGroup('Level', selectInput('detail_level', [['beginner', 'Beginner'], ['student', 'Student'], ['detailed', 'Detailed']], 'student'))}</div><button class="btn btn-primary" type="submit"><i class="bi bi-scan me-2"></i>Read and solve</button></form></div><div class="panel result-panel"><h3>Result</h3><div id="result-content"><div class="empty-state py-2"><i class="bi bi-image"></i><div>Upload a problem to begin.</div></div></div></div></div>`, 'AI-Based Calculation', 'Image Math Solver<span class="serif">, made legible.</span>');
-    document.getElementById('image-form').addEventListener('submit', async event => {
-      event.preventDefault();
-      const form = event.currentTarget; const body = new FormData(form);
-      document.getElementById('result-content').innerHTML = loading('Reading the problem…');
-      try {
-        const result = await api('/calc-api/ai/image', { method: 'POST', body });
-        showResult({ result: result.answer, formula: result.interpreted_problem, steps: [result.calculation, result.explanation].filter(Boolean) }, form.image.files[0]?.name || 'Uploaded math image', 'AI-Based Calculation', 'Image Math Solver');
-      } catch (error) { document.getElementById('result-content').innerHTML = apiError(error); }
-    });
-  }
   function renderVoiceFeature() {
     renderShell(`${aiNotice()}<div class="workspace"><div class="panel"><h2>Voice Calculator</h2><p class="text-secondary small">Speak a calculation, then edit the transcript before sending it.</p><form id="voice-form">${formGroup('Transcript', `<textarea class="form-control" name="prompt" rows="5" placeholder="e.g. what is 14 percent of 280"></textarea>`)}<div class="d-flex gap-2 flex-wrap"><button type="button" class="btn btn-soft" id="voice-listen"><i class="bi bi-mic me-2"></i>Start listening</button><button class="btn btn-primary" type="submit">Calculate</button></div><div id="voice-support" class="form-text mt-3"></div></form></div><div class="panel result-panel"><h3>Result</h3><div id="result-content"><div class="empty-state py-2"><i class="bi bi-mic"></i><div>Your spoken calculation will land here.</div></div></div></div></div>`, 'AI-Based Calculation', 'Voice Calculator<span class="serif">, hands free.</span>');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -530,7 +517,6 @@
     if (type === 'category') return renderCategory(id);
     if (type === 'feature') {
       if (coreForms[id]) return id === 'normal' ? renderNormalWithKeypad() : renderCoreFeature(id);
-      if (id === 'image') return renderImageFeature();
       if (id === 'voice') return renderVoiceFeature();
       if (id === 'graph') return renderGraph();
       if (id === 'whatif') return renderWhatIf();

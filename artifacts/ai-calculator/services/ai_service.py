@@ -63,8 +63,6 @@ def _request_prompt(prompt, mode, detail_level, feature):
         "explain": "Explain the supplied mathematical problem at the requested level. Show valid steps and explain why each step is useful.",
         "tutor": "Act as a patient math tutor. Start with a useful hint or guiding question rather than giving away the final answer immediately, unless the learner explicitly asks for it.",
         "solver": "Solve the problem accurately. Show a clear step-by-step solution and a final answer.",
-        "image": "Read the mathematical problem in the image, transcribe it, solve it accurately, show steps, and state a final answer.",
-        "prompt": "Interpret the user's math question, show the relevant calculation, provide a concise explanation, and clearly state the result.",
         "voice": "Interpret the recognized speech as a math question, show the calculation, and clearly state the result.",
     }.get(feature, "Solve the mathematical question accurately and explain the result.")
     return (
@@ -169,31 +167,6 @@ def _extract_error(body):
         return body[:500]
 
 
-def _call_gemini(text, image=None):
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("AI service is unavailable because GEMINI_API_KEY is not configured. Core Calculations still work.")
-
-    model = os.environ.get("GEMINI_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
-    parts = [{"text": text}]
-    if image:
-        mime_type, encoded = image
-        parts.append({"inline_data": {"mime_type": mime_type, "data": encoded}})
-
-    # Keep image requests deliberately simple. Some Gemini model/request combinations
-    # are stricter about thinking configuration when multimodal input is present.
-    generation_config = {"maxOutputTokens": 1200}
-    if image is None:
-        generation_config["thinkingConfig"] = {"thinkingLevel": "low"}
-    payload = {
-        "contents": [{"role": "user", "parts": parts}],
-        "generationConfig": generation_config,
-    }
-    if image is not None:
-        model = os.environ.get("GEMINI_IMAGE_MODEL", DEFAULT_IMAGE_MODEL).strip() or DEFAULT_IMAGE_MODEL
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    max_retries = 2
-    base_delay = 1.5
 
     for attempt in range(max_retries + 1):
         request = urllib.request.Request(
@@ -256,7 +229,7 @@ def solve(payload):
         checked = _mistake_check(prompt)
         if checked:
             return checked
-    if feature in {"prompt", "voice", "solver", ""}:
+    if feature in {"prompt", "solver", ""}:
         deterministic = solve_basic_word_problem(prompt)
         if deterministic:
             return deterministic

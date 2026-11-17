@@ -159,6 +159,7 @@ def _gemini_error_message(status, detail):
     return "Gemini could not complete that request. Check the API key, model access, and request format."
 
 
+
 def _extract_error(body):
     try:
         parsed = json.loads(body)
@@ -167,54 +168,109 @@ def _extract_error(body):
         return body[:500]
 
 
+def _call_gemini(prompt):
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    model = os.environ.get("GEMINI_MODEL", DEFAULT_MODEL).strip()
+
+    if not api_key:
+        raise RuntimeError("Gemini API key is not configured.")
+
+    url = (
+        "https://generativelanguage.googleapis.com/v1beta/"
+        f"models/{model}:generateContent"
+    )
+
+    payload = {
+        "contents": [
+            {
+                "parts": [{"text": prompt}]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.2
+        }
+    }
+
+    max_retries = 2
+    base_delay = 2
 
     for attempt in range(max_retries + 1):
         request = urllib.request.Request(
             url,
             data=json.dumps(payload).encode("utf-8"),
-            headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+            headers={
+                "x-goog-api-key": api_key,
+                "Content-Type": "application/json"
+            },
             method="POST",
         )
+
         try:
-            # A moderate timeout keeps the UI responsive while allowing normal model responses.
             with urllib.request.urlopen(request, timeout=35) as response:
                 raw = response.read().decode("utf-8")
+
             data = json.loads(raw)
             candidates = data.get("candidates") or []
+
             if not candidates:
                 raise RuntimeError("Gemini returned no answer. Please try again.")
+
             content = candidates[0].get("content", {})
             answer = "\n".join(
-                part.get("text", "") for part in content.get("parts", [])
+                part.get("text", "")
+                for part in content.get("parts", [])
                 if isinstance(part, dict) and part.get("text")
             ).strip()
+
             if not answer:
-                raise RuntimeError("Gemini returned an empty answer. Please try again.")
+                raise RuntimeError("Gemini returned an empty answer.")
+
             return answer
+
         except urllib.error.HTTPError as error:
-            detail = _extract_error(error.read().decode("utf-8", errors="replace"))
-            print(f"Gemini HTTP error {error.code} (attempt {attempt + 1}/{max_retries + 1}): {detail}")
-            # Google recommends exponential backoff for transient 429/5xx errors.
-            # Do not retry authentication, permission, malformed-request, or model errors.
-            if error.code in (408, 429, 500, 502, 503, 504) and attempt < max_retries:
-                import time
-                time.sleep(base_delay * (2 ** attempt))
-                continue
-            raise RuntimeError(_gemini_error_message(error.code, detail)) from None
+            detail = _extract_error(
+                error.read().decode("utf-8", errors="replace")
+            )
+
+            print(
+                f"Gemini HTTP error {error.code} "
+                f"(attempt {attempt + 1}/{max_retries + 1}): {detail}"
+            )
+
+            if error.code in (408, 429, 500, 502, 503, 504):
+                if attempt < max_retries:
+                    import time
+                    time.sleep(base_delay * (2 ** attempt))
+                    continue
+
+            raise RuntimeError(
+                _gemini_error_message(error.code, detail)
+            ) from None
+
         except urllib.error.URLError as error:
-            print(f"Gemini network error (attempt {attempt + 1}/{max_retries + 1}): {error.reason}")
+            print(f"Gemini network error: {error.reason}")
+
             if attempt < max_retries:
                 import time
                 time.sleep(base_delay * (2 ** attempt))
                 continue
-            raise RuntimeError("Could not reach Gemini. Check your internet connection and try again.") from None
+
+            raise RuntimeError(
+                "Could not reach Gemini. Please try again."
+            ) from None
+
         except (TimeoutError, json.JSONDecodeError) as error:
-            print(f"Gemini response error (attempt {attempt + 1}/{max_retries + 1}): {type(error).__name__}: {error}")
+            print(f"Gemini response error: {type(error).__name__}: {error}")
+
             if attempt < max_retries:
                 import time
                 time.sleep(base_delay * (2 ** attempt))
                 continue
-            raise RuntimeError("Gemini did not return a usable response. Please try again.") from None
+
+            raise RuntimeError(
+                "Gemini did not return a usable response."
+            ) from None
+
 
 
 def solve(payload):
